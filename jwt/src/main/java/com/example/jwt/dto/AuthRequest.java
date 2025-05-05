@@ -3,7 +3,7 @@ package com.example.jwt.dto;
 import lombok.Data;
 
 @Data
-public class RegisterRequest {
+public class AuthRequest {
     private String username;
     private String password;
 }
