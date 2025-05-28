@@ -15,6 +15,7 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
+    
 
     private final String SECRET = "my_super_secret_jwt_key_1234567890";
     private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
@@ -22,8 +23,6 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
-    @Value("${jwt.refresh_expiration}")
-    private long refreshExpiration;
 
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
@@ -48,4 +47,7 @@ public class JwtService {
         final String username = extractUsername(token);
         return username.equals(userDetails.getUsername());
     }
+    
+   
+
 }

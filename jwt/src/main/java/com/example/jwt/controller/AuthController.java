@@ -49,7 +49,7 @@ public class AuthController {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.ROLE_USER); // Mặc định là ROLE_ADMIN
+        user.setRole(Role.ROLE_ADMIN); // Mặc định là ROLE_ADMIN
         userRepository.save(user);
         return ResponseEntity.ok("User registered successfully");
     }
@@ -79,4 +79,5 @@ public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
     return ResponseEntity.ok(new AuthResponse(jwt));
 }
 
+   
 }
