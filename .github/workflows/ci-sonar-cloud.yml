@@ -15,34 +15,35 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
           MYSQL_DATABASE: jwt
-          MYSQL_USER: root
-          MYSQL_PASSWORD: rootpassword
-        ports:
-          - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=3
+          --health-retries=10
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Wait for MySQL to be ready
-        run: |
-          for i in {30..0}; do
-            if mysqladmin ping -h mysql -uroot -prootpassword --silent; then
-              break
-            fi
-            echo "Waiting for MySQL..."
-            sleep 1
-          done
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: temurin
+
+      - name: Wait for MySQL to be ready
+        run: |
+          echo "Waiting for MySQL to be ready..."
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -uroot -prootpassword --silent; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting ($i)..."
+            sleep 2
+          done
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -51,12 +52,28 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build and test
-        env:
-          SPRING_PROFILES_ACTIVE: test
-        run: mvn clean verify
+      - name: Build and Test with Maven
+        run: mvn -f jwt/pom.xml clean verify
+
+      - name: Show test logs on failure
+        if: failure()
+        run: |
+          echo "===== Test log output ====="
+          cat jwt/target/surefire-reports/*.txt || echo "No test logs found."
+
+      - name: Upload test reports (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: jwt/target/surefire-reports
 
       - name: Run SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn sonar:sonar -Dsonar.projectKey=haivoda22ttd_vo-chi-hai -Dsonar.organization=haivoda22ttd -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_TOKEN
+        run: |
+          mvn -f jwt/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=haivoda22ttd_vo-chi-hai \
+            -Dsonar.organization=haivoda22ttd \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
