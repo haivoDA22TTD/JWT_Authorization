@@ -41,25 +41,24 @@ jobs:
       - name: Build and test project
         run: mvn -f jwt/pom.xml clean verify
 
-
       - name: Show test logs on failure
         if: failure()
         run: |
           echo "===== Test log output ====="
-          cat target/surefire-reports/*.txt || echo "No test logs found."
+          cat jwt/target/surefire-reports/*.txt || echo "No test logs found."
 
       - name: Upload Surefire test reports (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports
-          path: target/surefire-reports
+          path: jwt/target/surefire-reports
 
       - name: Run SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn -f jwt/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=haivoda22ttd_vo-chi-hai \
             -Dsonar.organization=haivoda22ttd \
             -Dsonar.host.url=https://sonarcloud.io \
