@@ -85,4 +85,4 @@ jobs:
           -Dsonar.organization=haivoda22ttd \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-          -Dsonar.branch.name=main
+          -Dsonar.branch.name=mains
