@@ -20,6 +20,8 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
+        ports:
+          - 3306:3306
 
     steps:
       - name: Checkout source code
@@ -45,6 +47,10 @@ jobs:
             sleep 2
           done
 
+      - name: Verify MySQL connection
+        run: |
+          mysql -h127.0.0.1 -uroot -prootpassword -e "SHOW DATABASES;"
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -58,6 +64,8 @@ jobs:
       - name: Show test logs on failure
         if: failure()
         run: |
+          echo "===== Listing surefire reports ====="
+          ls -la jwt/target/surefire-reports || echo "No reports directory found"
           echo "===== Test log output ====="
           cat jwt/target/surefire-reports/*.txt || echo "No test logs found."
 
