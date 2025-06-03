@@ -2,7 +2,7 @@ name: CI with SonarQube and MySQL
 
 on:
   push:
-    branches: main
+    branches: mains
   pull_request:
 
 jobs:
