@@ -81,7 +81,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn -f jwt/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=haivoda22ttd_vo-chi-hai \
+          -Dsonar.projectKey=haivoda22ttd_jwt \
           -Dsonar.organization=haivoda22ttd \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
