@@ -1,9 +1,9 @@
-name: SonarQube
+name: SonarQube Analysis
 
 on:
   push:
     branches:
-      - main   # Sửa thành nhánh bạn đang dùng, ví dụ 'master' nếu cần
+      - main
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -16,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Tắt shallow clone để Sonar phân tích chính xác
+          fetch-depth: 0  # Đảm bảo lấy đủ lịch sử để phân tích chính xác
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -35,15 +35,30 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-${{ hashFiles('jwt/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build and analyze with Maven
+      - name: Build and test project
+        run: mvn -f jwt/pom.xml clean verify
+
+      - name: Show test logs on failure
+        if: failure()
+        run: |
+          echo "===== Test log output ====="
+          cat jwt/target/surefire-reports/*.txt || echo "No test logs found."
+
+      - name: Upload Surefire test reports (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: jwt/target/surefire-reports
+
+      - name: Run SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          # Nếu pom.xml nằm thư mục con jwt, thêm -f jwt/pom.xml, nếu ở root thì xóa đi
-          mvn -B -f jwt/pom.xml verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn -f jwt/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=haivoda22ttd_vo-chi-hai \
             -Dsonar.organization=haivoda22ttd \
             -Dsonar.host.url=https://sonarcloud.io \
