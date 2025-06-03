@@ -39,7 +39,8 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build and test project
-        run: mvn clean verify
+        run: mvn -f jwt/pom.xml clean verify
+
 
       - name: Show test logs on failure
         if: failure()
